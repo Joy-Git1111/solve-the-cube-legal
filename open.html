@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solve The Cube</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #12131a;
+    color: #e8e8ea;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .card { max-width: 420px; padding: 32px 24px; }
+  h1 { font-size: 26px; margin: 0 0 12px; }
+  p { font-size: 16px; color: #d3d3d8; line-height: 1.5; margin: 0 0 24px; }
+  a.btn {
+    display: block;
+    padding: 14px 20px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    margin: 12px 0;
+  }
+  a.primary { background: #e68a2e; color: #000; }
+  a.secondary { background: #1f2029; color: #e8e8ea; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1 id="title">Solve The Cube</h1>
+  <p id="message">Open this link on an iPhone or iPad to continue.</p>
+  <a id="open" class="btn primary hidden" href="#">Open in Solve The Cube</a>
+  <a id="store" class="btn secondary" href="https://apps.apple.com/app/id6814272082">Get the app</a>
+</div>
+<script>
+  var params = new URLSearchParams(location.search);
+  var host = params.get('h');
+  params.delete('h');
+
+  var kinds = {
+    'challenge': function () {
+      var from = params.get('from');
+      var time = parseFloat(params.get('time'));
+      var who = from ? from : 'A friend';
+      var msg = who + ' challenged you to solve the exact same scramble.';
+      if (!isNaN(time)) {
+        var m = Math.floor(time / 60);
+        var s = (time - m * 60).toFixed(1);
+        msg = who + ' solved it in ' + (m > 0 ? m + ':' + (s < 10 ? '0' : '') + s : s + 's') + '. Can you beat that?';
+      }
+      return { title: 'You’ve been challenged!', message: msg };
+    },
+    'invite': function () {
+      var from = params.get('from');
+      return {
+        title: 'You’re invited!',
+        message: (from ? from + ' invited you' : 'A friend invited you') + ' to learn the cube. When you join, you both unlock the exclusive Founders color theme.'
+      };
+    },
+    'invite-confirmed': function () {
+      var from = params.get('from');
+      return {
+        title: 'Your friend joined!',
+        message: (from ? from : 'Your friend') + ' joined using your invite. Open the app to unlock your Founders theme.'
+      };
+    }
+  };
+
+  if (Object.prototype.hasOwnProperty.call(kinds, host)) {
+    var info = kinds[host]();
+    document.getElementById('title').textContent = info.title;
+    document.getElementById('message').textContent = info.message;
+    var open = document.getElementById('open');
+    open.href = 'solvethecube://' + host + '?' + params.toString();
+    open.classList.remove('hidden');
+
+    // If the app were installed, the Universal Link would have opened it and this page would never
+    // have loaded — so on iPhone/iPad, arriving here means the app is most likely missing. Send
+    // them to the App Store, keeping the buttons above as a fallback.
+    var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      setTimeout(function () {
+        location.href = document.getElementById('store').href;
+      }, 1200);
+    }
+  }
+</script>
+</body>
+</html>
